@@ -1,0 +1,29 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --runInBand",
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "db:copy": "node scripts/copy-database.cjs",
+    "admin:create": "node scripts/create-admin.cjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mysql2": "^3.24.4"
+  },
+  "devDependencies": {
+    "jest": "^30.5.2",
+    "js-yaml": "^3.15.2",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.3.1"
+  }
+}
