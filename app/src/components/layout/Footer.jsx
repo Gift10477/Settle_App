@@ -11,12 +11,12 @@
  * Props:
  *   onNavigate — fn(viewId) for internal link navigation
  */
-import React from 'react';
 
 const QUICK_LINKS = [
   { label: 'Browse Properties', view: 'listings' },
   { label: 'About Us',          view: 'about' },
   { label: 'Contact',           view: 'contact' },
+  { label: 'Help & password support', view: 'help' },
   { label: 'List Your Property', view: 'landlord' },
   { label: 'Get Started',       view: 'auth' },
 ];

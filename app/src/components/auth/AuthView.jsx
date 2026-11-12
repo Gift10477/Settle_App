@@ -9,7 +9,7 @@
  *   onNavigate — fn(viewId) for post-auth redirect
  *   onToast    — fn(message) to show a toast notification
  */
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { registerUser, loginUser } from '../../services/database';
 
 /* Feature bullets shown on the left panel */
@@ -22,7 +22,6 @@ const FEATURES = [
 
 export default function AuthView({ onNavigate, onToast, onAuthSuccess }) {
   const [activeTab,       setActiveTab]       = useState('signup');
-  const [passwordFocused, setPasswordFocused] = useState(false);
   const [showPassword,    setShowPassword]    = useState(false);
 
   /* Sign In state */
@@ -255,8 +254,6 @@ export default function AuthView({ onNavigate, onToast, onAuthSuccess }) {
                     placeholder="At least 8 characters"
                     minLength={8}
                     value={suPassword} onChange={e => setSuPassword(e.target.value)}
-                    onFocus={() => setPasswordFocused(true)}
-                    onBlur={() => setPasswordFocused(false)}
                     required autoComplete="new-password"
                   />
                   <button type="button" className="auth-eye-btn"
@@ -309,8 +306,6 @@ export default function AuthView({ onNavigate, onToast, onAuthSuccess }) {
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
                     value={siPassword} onChange={e => setSiPassword(e.target.value)}
-                    onFocus={() => setPasswordFocused(true)}
-                    onBlur={() => setPasswordFocused(false)}
                     required autoComplete="current-password"
                   />
                   <button type="button" className="auth-eye-btn"
@@ -325,7 +320,9 @@ export default function AuthView({ onNavigate, onToast, onAuthSuccess }) {
                 </div>
 
                 <div className="auth-forgot-row">
-                  <a href="#" className="auth-forgot">Forgot password?</a>
+                  <button type="button" className="auth-forgot" onClick={() => onNavigate('help')}>
+                    Forgot password? Contact an administrator
+                  </button>
                 </div>
 
                 <button type="submit" className="auth-submit-btn">

@@ -13,7 +13,7 @@
  *   theme         — 'light' | 'dark'
  *   onToggleTheme — fn() to flip the theme
  */
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 const NAV_ITEMS = [
   { label: 'Home',          view: 'home' },

@@ -13,7 +13,7 @@
  *   onView        — fn(id) navigate to detail view
  *   onToast       — fn(message) show toast
  */
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import FilterSidebar from './FilterSidebar';
 import PropertyCard from './PropertyCard';
 import { getProperties } from '../../services/database';
@@ -31,24 +31,24 @@ export default function ListingsView({ initialCampus = 'all', onView, onToast })
   const [loading,  setLoading]  = useState(true);
 
   /* Load live properties from MySQL backend via Express */
-  const loadListings = () => {
-    setLoading(true);
-    getProperties()
-      .then((data) => {
-        setRawProps(Array.isArray(data) ? data : []);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error('Error fetching properties from MySQL database:', err);
-        setRawProps([]);
-        setLoading(false);
-        if (onToast) onToast('Failed to load listings from database. Please check your backend connection.');
-      });
-  };
-
   useEffect(() => {
-    loadListings();
-  }, []);
+    let active = true;
+    getProperties()
+      .then(data => {
+        if (active) setRawProps(Array.isArray(data) ? data : []);
+      })
+      .catch(err => {
+        console.error('Error fetching properties from MySQL database:', err);
+        if (active) {
+          setRawProps([]);
+          if (onToast) onToast('Failed to load listings from database. Please check your backend connection.');
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
+  }, [onToast]);
 
   /* Apply filters and sort (memoised for performance) */
   const displayed = useMemo(() => {

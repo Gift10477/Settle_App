@@ -15,7 +15,6 @@
  *   onApply   — fn() trigger the search
  *   onClear   — fn() reset all filters
  */
-import React from 'react';
 
 export default function FilterSidebar({ filters, onChange, onApply, onClear }) {
   /** Toggle an amenity on/off in the amenities array */

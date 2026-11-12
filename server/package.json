@@ -8,6 +8,7 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "db:copy": "node scripts/copy-database.cjs",
+    "db:normalize": "node scripts/enforce-core-constraints.cjs",
     "admin:create": "node scripts/create-admin.cjs"
   },
   "keywords": [],
