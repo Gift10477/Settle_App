@@ -11,7 +11,7 @@
  * Props:
  *   onToast — fn(message) show feedback toast
  */
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 const CONTACT_ITEMS = [
   {

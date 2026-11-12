@@ -24,7 +24,9 @@ async function audit(connection, actor, action, target) {
 }
 router.get('/dashboard', async (req, res, next) => {
   try {
-    const [properties] = await db.query('SELECT * FROM properties ORDER BY created_at DESC');
+    const [properties] = await db.query(`SELECT p.*, GROUP_CONCAT(pa.amenity ORDER BY pa.amenity SEPARATOR ',') AS amenities
+      FROM properties p LEFT JOIN property_amenities pa ON pa.property_id = p.id
+      GROUP BY p.id ORDER BY p.created_at DESC`);
     const [bookings] = await db.query('SELECT b.*, u.name AS student_name, u.email FROM bookings b LEFT JOIN users u ON u.id=b.user_id ORDER BY b.id DESC');
     const [users] = await db.query('SELECT id, name, email, role FROM users ORDER BY id DESC');
     const [payments] = await db.query('SELECT * FROM payments ORDER BY id DESC LIMIT 100');
@@ -33,15 +35,41 @@ router.get('/dashboard', async (req, res, next) => {
   } catch (error) { next(error); }
 });
 router.patch('/properties/:id', async (req, res, next) => {
-  const allowed = ['title','type','price','location','campus','vacant_units','description','image','verified'];
+  const allowed = ['title','type','price','location','campus','vacant_units','description','image','verified','amenities'];
   const entries = Object.entries(req.body);
-  if (!entries.length || entries.some(([key,value]) => !allowed.includes(key) || (['price','vacant_units'].includes(key) ? !Number.isInteger(value) || value < 0 : key === 'verified' ? typeof value !== 'boolean' : typeof value !== 'string' || value.length > 10000 || (!value.trim() && !['image','description'].includes(key))))) return res.status(400).json({ error: 'Invalid listing values' });
+  const amenitiesEntry = entries.find(([key]) => key === 'amenities');
+  const rawAmenities = amenitiesEntry?.[1];
+  const validAmenitiesInput = !amenitiesEntry || typeof rawAmenities === 'string' || Array.isArray(rawAmenities) && rawAmenities.every(value => typeof value === 'string');
+  const amenities = amenitiesEntry
+    ? [...new Set((Array.isArray(rawAmenities) ? rawAmenities : typeof rawAmenities === 'string' ? rawAmenities.split(',') : []).map(value => value.trim()).filter(Boolean))]
+    : null;
+  if (!entries.length || !validAmenitiesInput || amenities?.some(value => value.length > 100) || entries.some(([key,value]) => key === 'amenities' ? false : !allowed.includes(key) || (['price','vacant_units'].includes(key) ? !Number.isInteger(value) || value < 0 : key === 'verified' ? typeof value !== 'boolean' : typeof value !== 'string' || value.length > 10000 || (!value.trim() && !['image','description'].includes(key))))) return res.status(400).json({ error: 'Invalid listing values' });
+  const propertyEntries = entries.filter(([key]) => key !== 'amenities');
+  let connection;
   try {
-    const [result] = await db.query(`UPDATE properties SET ${entries.map(([key]) => `${key} = ?`).join(', ')} WHERE id = ?`, [...entries.map(([,value]) => value),req.params.id]);
-    if (!result.affectedRows) return res.status(404).json({ error: 'Listing not found' });
-    await audit(db,req.userId,'listing.updated',req.params.id);
+    connection = await db.getConnection();
+    await connection.beginTransaction();
+    if (propertyEntries.length) {
+      const [result] = await connection.query(`UPDATE properties SET ${propertyEntries.map(([key]) => `${key} = ?`).join(', ')} WHERE id = ?`, [...propertyEntries.map(([,value]) => value),req.params.id]);
+      if (!result.affectedRows) {
+        await connection.rollback();
+        return res.status(404).json({ error: 'Listing not found' });
+      }
+    } else {
+      const [rows] = await connection.query('SELECT id FROM properties WHERE id = ? FOR UPDATE', [req.params.id]);
+      if (!rows.length) {
+        await connection.rollback();
+        return res.status(404).json({ error: 'Listing not found' });
+      }
+    }
+    if (amenities !== null) {
+      await connection.query('DELETE FROM property_amenities WHERE property_id = ?', [req.params.id]);
+      if (amenities.length) await connection.query('INSERT INTO property_amenities (property_id, amenity) VALUES ?', [[...amenities.map(amenity => [req.params.id,amenity])]]);
+    }
+    await audit(connection,req.userId,'listing.updated',req.params.id);
+    await connection.commit();
     res.json({ message: 'Listing updated' });
-  } catch(error) { next(error); }
+  } catch(error) { if(connection)await connection.rollback();next(error); } finally { if(connection)connection.release(); }
 });
 router.patch('/bookings/:id', async (req,res,next) => {
   const status = req.body.status;

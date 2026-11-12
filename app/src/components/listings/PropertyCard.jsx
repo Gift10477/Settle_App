@@ -11,7 +11,7 @@
  *   onToast  — fn(message) show a toast
  *   style    — optional React inline style (for animation delays)
  */
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { toggleSaved, isSaved } from '../../services/database';
 
 export default function PropertyCard({ property, onView, onToast, style }) {

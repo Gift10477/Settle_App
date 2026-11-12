@@ -44,6 +44,42 @@
    ABOUT PAGE
    ═══════════════════ */
 
+.help-page {
+  max-width: 900px;
+  padding-top: 4rem;
+  padding-bottom: 5rem;
+}
+.help-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+.help-questions {
+  display: grid;
+  gap: 0.75rem;
+}
+.help-questions details {
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+}
+.help-questions summary {
+  color: var(--text-primary);
+  font-weight: 700;
+  cursor: pointer;
+}
+.help-questions p {
+  margin: 0.8rem 0 0;
+  line-height: 1.65;
+}
+.help-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.8rem;
+  margin-top: 2rem;
+}
+
 /* Hero */
 .about-hero {
   background: linear-gradient(145deg, #0d1421 0%, #0f1d35 50%, #1a3163 100%);

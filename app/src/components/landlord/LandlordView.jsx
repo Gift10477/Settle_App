@@ -8,7 +8,7 @@
  * Props:
  *   onToast — fn(message) show a toast notification
  */
-import React, { useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { addProperty, getProperties, updateProperty } from '../../services/database';
 
 export default function LandlordView({ onToast }) {
@@ -27,24 +27,36 @@ export default function LandlordView({ onToast }) {
   const [loading, setLoading] = useState(false);
 
   /** Load properties from database */
-  const fetchList = () => {
-    setLoading(true);
-    getProperties()
-      .then((data) => {
-        setProperties(data || []);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error('Error fetching properties from database:', err);
-        setLoading(false);
-      });
-  };
+  const fetchList = useCallback(async () => {
+    try {
+      const data = await getProperties();
+      setProperties(data || []);
+    } catch (err) {
+      console.error('Error fetching properties from database:', err);
+      onToast(`Unable to load properties: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }, [onToast]);
 
   useEffect(() => {
-    if (tab === 'manage') {
-      fetchList();
-    }
-  }, [tab]);
+    if (tab !== 'manage') return undefined;
+    let active = true;
+    getProperties()
+      .then(data => {
+        if (active) setProperties(data || []);
+      })
+      .catch(err => {
+        if (active) {
+          console.error('Error fetching properties from database:', err);
+          onToast(`Unable to load properties: ${err.message}`);
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
+  }, [tab, onToast]);
 
   /** Update a single field */
   const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }));
@@ -98,7 +110,7 @@ export default function LandlordView({ onToast }) {
             </button>
             <button
               className={`btn ${tab === 'manage' ? 'btn--primary' : 'btn--gray'}`}
-              onClick={() => setTab('manage')}
+              onClick={() => { setLoading(true); setTab('manage'); }}
               type="button"
             >
               Manage properties

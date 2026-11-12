@@ -14,7 +14,7 @@
  *  'auth'     — Sign in / Create account
  *  'landlord' — Landlord submission form
  */
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import AdminView from './components/admin/AdminView';
 import ReservationsView from './components/admin/ReservationsView';
 /* ── Styles ── */
@@ -45,6 +45,7 @@ import AuthView from './components/auth/AuthView';
 import LandlordView from './components/landlord/LandlordView';
 import AboutView from './components/pages/AboutView';
 import ContactView from './components/pages/ContactView';
+import HelpView from './components/pages/HelpView';
 
 /** How long (ms) the splash screen stays visible on load */
 const SPLASH_DURATION = 2000;
@@ -68,7 +69,7 @@ export default function App() {
   const [initialCampus, setInitialCampus] = useState('all');
 
   /* ── Auth ── */
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(getCurrentUser);
   /** Property ID the guest was trying to view before we sent them to auth */
   const [pendingPropId, setPendingPropId] = useState(null);
 
@@ -80,7 +81,6 @@ export default function App() {
    * Initialisation — check active session and dismiss splash
    * ───────────────────────────────────────────────── */
   useEffect(() => {
-    setCurrentUser(getCurrentUser());
     const t = setTimeout(() => setSplashLoaded(true), SPLASH_DURATION);
     return () => clearTimeout(t);
   }, []);
@@ -226,6 +226,10 @@ export default function App() {
         {/* Contact */}
         {activeView === 'contact' && (
           <ContactView onToast={showToast} />
+        )}
+
+        {activeView === 'help' && (
+          <HelpView onNavigate={(view) => navigate(view)} />
         )}
       </main>
 

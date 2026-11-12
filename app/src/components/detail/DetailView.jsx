@@ -15,7 +15,7 @@
  *   onToast     — fn(message) show toast
  *   currentUser — current authenticated user object
  */
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getPropertyById, createBooking, getCurrentUser } from '../../services/database';
 
 /** Render N filled stars + empty remainder */
@@ -37,7 +37,6 @@ export default function DetailView({ propId, onBack, onToast, currentUser }) {
   const [expectedArrivalTime, setExpectedArrivalTime] = useState('10:00 AM');
   const [leaseDuration, setLeaseDuration] = useState('1 Semester (4 months)');
   const [bookingNotes, setBookingNotes] = useState('');
-  const [bookingStudentId, setBookingStudentId] = useState('');
   const [isBooking, setIsBooking] = useState(false);
   const [confirmedBooking, setConfirmedBooking] = useState(null);
 
@@ -47,17 +46,12 @@ export default function DetailView({ propId, onBack, onToast, currentUser }) {
   const [reviewComment, setReviewComment] = useState('');
   const [reviews, setReviews] = useState([]);
 
-  useEffect(() => {
-    // Pre-fill student ID from logged-in user when component mounts
-    const user = currentUser || getCurrentUser();
-    if (user && user.student_id) {
-      setBookingStudentId(user.student_id);
-    }
-  }, [currentUser]);
+  const [bookingStudentId, setBookingStudentId] = useState(
+    () => currentUser?.student_id || getCurrentUser()?.student_id || '',
+  );
 
   useEffect(() => {
     let mounted = true;
-    setLoading(true);
     getPropertyById(propId)
       .then((data) => {
         if (mounted) {

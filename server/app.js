@@ -3,8 +3,20 @@ const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 const app = express();
+const production = process.env.NODE_ENV === 'production';
+const allowedOrigins = (process.env.CORS_ORIGINS || '').split(',').map(origin => origin.trim()).filter(Boolean);
+if (production && !allowedOrigins.length) {
+  throw new Error('Production requires CORS_ORIGINS to contain the deployed frontend origin.');
+}
 app.disable('x-powered-by');
-app.use(cors());
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || (!production && !allowedOrigins.length) || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Origin not allowed.'));
+  },
+}));
 app.use(express.json({ limit: '7mb' }));
 app.use((req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
 app.use('/data/uploads', express.static(path.join(__dirname, 'uploads'), { dotfiles: 'deny', index: false }));
